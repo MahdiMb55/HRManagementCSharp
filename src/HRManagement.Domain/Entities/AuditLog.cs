@@ -12,4 +12,19 @@ public sealed class AuditLog : Entity
     public string? OldValuesJson { get; private set; }
     public string? NewValuesJson { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
+
+    public static AuditLog Create(
+        string entityType,
+        long entityId,
+        string action,
+        string description,
+        DateTime createdAtUtc) =>
+        new()
+        {
+            EntityType = entityType,
+            EntityId = entityId,
+            Action = action,
+            Description = description,
+            CreatedAtUtc = createdAtUtc.Kind == DateTimeKind.Utc ? createdAtUtc : createdAtUtc.ToUniversalTime(),
+        };
 }

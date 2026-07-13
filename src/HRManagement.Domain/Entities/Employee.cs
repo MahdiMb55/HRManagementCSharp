@@ -79,4 +79,12 @@ public sealed class Employee : AuditableEntity
 
         return ValidationResult<Employee>.Success(new Employee(personId, personnelNumber, nowUtc));
     }
+
+    public void UpdateBasicDetails(string? fatherName, string? mobileNumber, DateTime nowUtc)
+    {
+        FatherName = string.IsNullOrWhiteSpace(fatherName) ? null : fatherName.Trim();
+        MobileNumber = string.IsNullOrWhiteSpace(mobileNumber) ? null : mobileNumber.Trim();
+        NormalizedMobileNumber = MobileNumber is null ? null : PersianTextNormalizer.Normalize(MobileNumber);
+        Touch(nowUtc);
+    }
 }
