@@ -80,7 +80,7 @@
 
 **Interfaces:**
 - Consumes: `NationalCode`, `PersonnelNumber`, `ValidationResult<T>`.
-- Produces: stable explicit enums and focused entity constructors/mutators; `DateRange.Overlaps(DateRange) : bool`; `Department.WouldCreateCycle(long candidateParentId, IReadOnlyDictionary<long,long?> parents) : bool`.
+- Produces: stable explicit enums and focused entity constructors/mutators; `DateRange.Overlaps(DateRange) : bool`; `Department.WouldCreateCycle(long departmentId, long candidateParentId, IReadOnlyDictionary<long,long?> parents) : bool`.
 
 - [ ] Add failing tests for reversed date range, inclusive overlap, future birth date, one open employment period, and hierarchy cycles.
 - [ ] Run `dotnet test tests/HRManagement.Domain.Tests --filter FullyQualifiedName~DateRange|FullyQualifiedName~Entities`; expect compile/failing assertions for missing behavior.
