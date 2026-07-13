@@ -18,5 +18,7 @@ public sealed class StableEnumValueTests
         Assert.Equal(6, (int)ContractType.ProjectBased);
         Assert.Equal(6, (int)TerminationType.Deceased);
         Assert.Equal(3, (int)BackupType.EmergencyBeforeRestore);
+        Assert.Equal(4, (int)DependentEducationStatus.UniversityStudent);
+        Assert.Equal(3, (int)DependentInsuranceStatus.OtherCoverage);
     }
 }

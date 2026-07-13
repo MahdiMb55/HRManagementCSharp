@@ -42,6 +42,8 @@ The initial migration creates: `Persons`, `Employees`, `EmployeeDependents`, `Em
 
 The columns match the approved model. Technical refinements are explicit nullable `EndDate` columns for active-history partial indexes, normalized search columns (`NormalizedFirstName`, `NormalizedLastName`, `NormalizedPersonnelNumber`, `NormalizedMobileNumber`, `NormalizedName`, `NormalizedTitle`), and a singleton key check for `CompanyProfile.Id = 1`.
 
+Dependent education uses stable values `NotApplicable`, `SchoolStudent`, `Graduate`, and `UniversityStudent`; dependent insurance uses `NotInsured`, `EmployeeCoverage`, and `OtherCoverage`. These refinements give the two approved fields enforceable values without changing their product meaning.
+
 ## Constraints and indexes
 
 - Unique: `Persons.NationalCode`, `Employees.PersonId`, `Employees.PersonnelNumber`, non-null bank `CardNumber` and `Iban`, and `AppSettings.Key`.
@@ -55,3 +57,5 @@ SQLite cannot reliably express overlap, required-primary-among-active, hierarchy
 ## Seed data
 
 Only seven system document categories are seeded with stable identifiers: national card, birth certificate, education, contract, insurance, military service and other. No Person or Employee is seeded.
+
+EF Core SQLite does not support generation of idempotent migration scripts. Release verification therefore generates a version-bounded script (`0` to `InitialCreate`) for review, while the application uses `Database.Migrate` and `__EFMigrationsHistory` to apply only pending migrations.

@@ -28,3 +28,6 @@ indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = false
+
+[src/**/Migrations/*.cs]
+generated_code = true
