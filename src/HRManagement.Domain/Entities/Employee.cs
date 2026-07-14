@@ -87,4 +87,15 @@ public sealed class Employee : AuditableEntity
         NormalizedMobileNumber = MobileNumber is null ? null : PersianTextNormalizer.Normalize(MobileNumber);
         Touch(nowUtc);
     }
+
+    public void SetProfilePhoto(long managedFileId, DateTime nowUtc)
+    {
+        if (managedFileId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(managedFileId));
+        }
+
+        ProfilePhotoFileId = managedFileId;
+        Touch(nowUtc);
+    }
 }
