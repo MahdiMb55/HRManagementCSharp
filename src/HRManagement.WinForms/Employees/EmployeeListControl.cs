@@ -34,6 +34,7 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         this.dateAdapter = dateAdapter;
         this.editorLogger = editorLogger;
         InitializeComponent();
+        InitializeColumnVisibilityMenu();
         presenter = new EmployeeListPresenter(this, searchService, delay, listLogger, backgroundExecutor);
         WireEvents();
     }
@@ -140,6 +141,8 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
             await presenter.RefreshAsync(lifetime.Token);
         };
         employeesGrid.SelectionChanged += (_, _) => UpdateSummary();
+        columnVisibilityButton.Click += (_, _) =>
+            columnVisibilityMenu.Show(columnVisibilityButton, new Point(0, columnVisibilityButton.Height));
         employeesGrid.CellDoubleClick += async (_, eventArgs) =>
         {
             if (eventArgs.RowIndex >= 0)
@@ -167,6 +170,37 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         };
         addEmployeeButton.Click += async (_, _) => await ShowEditorAsync(null);
         editEmployeeButton.Click += async (_, _) => await OpenSelectedEmployeeAsync();
+    }
+
+    private void InitializeColumnVisibilityMenu()
+    {
+        foreach (DataGridViewColumn column in employeesGrid.Columns)
+        {
+            var item = new ToolStripMenuItem(column.HeaderText)
+            {
+                Checked = column.Visible,
+                CheckOnClick = true,
+                Tag = column,
+            };
+            item.CheckedChanged += (_, _) => ApplyColumnVisibility(item);
+            columnVisibilityMenu.Items.Add(item);
+        }
+    }
+
+    private void ApplyColumnVisibility(ToolStripMenuItem item)
+    {
+        if (item.Tag is not DataGridViewColumn column)
+        {
+            return;
+        }
+
+        if (!item.Checked && employeesGrid.Columns.Cast<DataGridViewColumn>().Count(candidate => candidate.Visible) <= 1)
+        {
+            item.Checked = true;
+            return;
+        }
+
+        column.Visible = item.Checked;
     }
 
     private async void ExecuteShortcut(EmployeeListShortcutCommand command)

@@ -18,3 +18,4 @@ All notable changes follow Keep a Changelog conventions.
 - Prevented blank edit forms when employee loading fails.
 - Made shutdown disposal paths idempotent and logged host shutdown failures.
 - Replaced count-based log retention with deletion of `hrmanagement-*.log` files older than 30 days.
+- Added initial employment lifecycle application/domain/infrastructure contracts for starting employment, termination, return-to-work, and status changes.

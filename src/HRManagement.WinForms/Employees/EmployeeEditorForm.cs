@@ -15,6 +15,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
     private long? employeeId;
     private bool isDirty;
     private bool applyingData;
+    private bool disposed;
 
     public EmployeeEditorForm(
         IEmployeeEditorService editorService,
@@ -147,10 +148,27 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
         base.OnFormClosing(e);
     }
 
+    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+    {
+        if (keyData == Keys.Escape)
+        {
+            Close();
+            return true;
+        }
+
+        return base.ProcessCmdKey(ref msg, keyData);
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
             lifetime.Cancel();
             lifetime.Dispose();
         }

@@ -34,3 +34,13 @@ Observed:
 Not yet manually verified:
 
 - Add employee, duplicate national code, duplicate personnel number, search, sort, pagination, edit, dirty-close warning, and missing-database-after-initialization flows.
+
+## Deferred Verification
+
+Additional refinements after the recorded runtime smoke check:
+
+- Employee-list supported-column visibility menu.
+- Employee editor Escape close shortcut.
+- Idempotent employee-editor disposal.
+
+Verification for these refinements is intentionally deferred to the final verification step with the remaining milestone checks.

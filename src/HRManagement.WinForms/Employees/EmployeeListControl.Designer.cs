@@ -6,6 +6,8 @@ partial class EmployeeListControl
     private FlowLayoutPanel toolbarPanel = null!;
     private TextBox searchTextBox = null!;
     private ComboBox pageSizeComboBox = null!;
+    private Button columnVisibilityButton = null!;
+    private ContextMenuStrip columnVisibilityMenu = null!;
     private Button addEmployeeButton = null!;
     private Button editEmployeeButton = null!;
     private DataGridView employeesGrid = null!;
@@ -23,6 +25,8 @@ partial class EmployeeListControl
         toolbarPanel = new FlowLayoutPanel();
         searchTextBox = new TextBox();
         pageSizeComboBox = new ComboBox();
+        columnVisibilityButton = new Button();
+        columnVisibilityMenu = new ContextMenuStrip();
         addEmployeeButton = new Button();
         editEmployeeButton = new Button();
         employeesGrid = new DataGridView();
@@ -50,6 +54,8 @@ partial class EmployeeListControl
         searchTextBox.Width = 340;
         pageSizeComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
         pageSizeComboBox.Items.AddRange([25, 50, 100]);
+        columnVisibilityButton.AutoSize = true;
+        columnVisibilityButton.Text = "ستون‌ها";
         pageSizeComboBox.SelectedIndex = 0;
         pageSizeComboBox.Width = 72;
         addEmployeeButton.Text = "افزودن کارمند";
@@ -59,6 +65,7 @@ partial class EmployeeListControl
         editEmployeeButton.Enabled = false;
         toolbarPanel.Controls.Add(addEmployeeButton);
         toolbarPanel.Controls.Add(editEmployeeButton);
+        toolbarPanel.Controls.Add(columnVisibilityButton);
         toolbarPanel.Controls.Add(searchTextBox);
         toolbarPanel.Controls.Add(new Label { Text = "تعداد در صفحه:", AutoSize = true, Padding = new Padding(4, 7, 4, 0) });
         toolbarPanel.Controls.Add(pageSizeComboBox);
