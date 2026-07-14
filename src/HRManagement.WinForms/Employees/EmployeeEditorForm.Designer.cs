@@ -14,6 +14,7 @@ partial class EmployeeEditorForm
     private FlowLayoutPanel actionsPanel = null!;
     private Button employmentLifecycleButton = null!;
     private Button organizationAssignmentsButton = null!;
+    private Button personnelRecordsButton = null!;
     private Button saveButton = null!;
     private Button cancelButton = null!;
     private Label busyLabel = null!;
@@ -33,6 +34,7 @@ partial class EmployeeEditorForm
         actionsPanel = new FlowLayoutPanel();
         employmentLifecycleButton = new Button();
         organizationAssignmentsButton = new Button();
+        personnelRecordsButton = new Button();
         saveButton = new Button();
         cancelButton = new Button();
         busyLabel = new Label();
@@ -66,6 +68,9 @@ partial class EmployeeEditorForm
         organizationAssignmentsButton.AutoSize = true;
         organizationAssignmentsButton.Enabled = false;
         organizationAssignmentsButton.Text = "واحد و مسئولیت";
+        personnelRecordsButton.AutoSize = true;
+        personnelRecordsButton.Enabled = false;
+        personnelRecordsButton.Text = "سوابق پرسنلی";
         saveButton.Text = "ذخیره";
         saveButton.Width = 100;
         cancelButton.Text = "بستن";
@@ -76,6 +81,7 @@ partial class EmployeeEditorForm
         busyLabel.Visible = false;
         actionsPanel.Controls.Add(employmentLifecycleButton);
         actionsPanel.Controls.Add(organizationAssignmentsButton);
+        actionsPanel.Controls.Add(personnelRecordsButton);
         actionsPanel.Controls.Add(saveButton);
         actionsPanel.Controls.Add(cancelButton);
         actionsPanel.Controls.Add(busyLabel);

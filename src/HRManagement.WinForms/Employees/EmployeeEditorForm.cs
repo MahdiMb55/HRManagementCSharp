@@ -2,6 +2,7 @@ using HRManagement.Application.Abstractions;
 using HRManagement.Application.Employees;
 using HRManagement.Application.Employment;
 using HRManagement.Application.Organization;
+using HRManagement.Application.PersonnelRecords;
 using HRManagement.Domain.Enums;
 using HRManagement.WinForms.Formatting;
 using Microsoft.Extensions.Logging;
@@ -13,10 +14,12 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
     private readonly EmployeeEditorPresenter presenter;
     private readonly IEmploymentLifecycleService lifecycleService;
     private readonly IAssignmentService assignmentService;
+    private readonly IPersonnelRecordService personnelRecordService;
     private readonly IPersianDateAdapter dateAdapter;
     private readonly IBackgroundExecutor backgroundExecutor;
     private readonly ILogger<EmploymentLifecycleForm> lifecycleLogger;
     private readonly ILogger<OrganizationAssignmentsForm> organizationLogger;
+    private readonly ILogger<PersonnelRecordsForm> personnelRecordsLogger;
     private readonly CancellationTokenSource lifetime = new();
     private long? employeeId;
     private bool isDirty;
@@ -27,18 +30,22 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
         IEmployeeEditorService editorService,
         IEmploymentLifecycleService lifecycleService,
         IAssignmentService assignmentService,
+        IPersonnelRecordService personnelRecordService,
         IPersianDateAdapter dateAdapter,
         IBackgroundExecutor backgroundExecutor,
         ILogger<EmployeeEditorPresenter> logger,
         ILogger<EmploymentLifecycleForm> lifecycleLogger,
-        ILogger<OrganizationAssignmentsForm> organizationLogger)
+        ILogger<OrganizationAssignmentsForm> organizationLogger,
+        ILogger<PersonnelRecordsForm> personnelRecordsLogger)
     {
         this.lifecycleService = lifecycleService;
         this.assignmentService = assignmentService;
+        this.personnelRecordService = personnelRecordService;
         this.dateAdapter = dateAdapter;
         this.backgroundExecutor = backgroundExecutor;
         this.lifecycleLogger = lifecycleLogger;
         this.organizationLogger = organizationLogger;
+        this.personnelRecordsLogger = personnelRecordsLogger;
         InitializeComponent();
         presenter = new EmployeeEditorPresenter(this, editorService, logger, backgroundExecutor);
         WireEvents();
@@ -74,6 +81,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
             personnelNumberTextBox.ReadOnly = selectedEmployeeId is not null;
             employmentLifecycleButton.Enabled = selectedEmployeeId is not null;
             organizationAssignmentsButton.Enabled = selectedEmployeeId is not null;
+            personnelRecordsButton.Enabled = selectedEmployeeId is not null;
             Text = selectedEmployeeId is null ? "افزودن کارمند" : "ویرایش اطلاعات کارمند";
             if (selectedEmployeeId is long id)
             {
@@ -145,6 +153,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
         personnelNumberTextBox.ReadOnly = true;
         employmentLifecycleButton.Enabled = true;
         organizationAssignmentsButton.Enabled = true;
+        personnelRecordsButton.Enabled = true;
         EmployeeSaved?.Invoke(this, employeeId);
         MessageBox.Show(
             this,
@@ -217,6 +226,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
         };
         employmentLifecycleButton.Click += (_, _) => ShowEmploymentLifecycle();
         organizationAssignmentsButton.Click += (_, _) => ShowOrganizationAssignments();
+        personnelRecordsButton.Click += (_, _) => ShowPersonnelRecords();
         cancelButton.Click += (_, _) => Close();
     }
 
@@ -248,6 +258,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
         errorProvider.Clear();
         employmentLifecycleButton.Enabled = false;
         organizationAssignmentsButton.Enabled = false;
+        personnelRecordsButton.Enabled = false;
     }
 
     private void ShowEmploymentLifecycle()
@@ -295,6 +306,30 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
             dateAdapter,
             backgroundExecutor,
             organizationLogger);
+        form.ShowDialog(this);
+    }
+
+    private void ShowPersonnelRecords()
+    {
+        if (employeeId is not long currentEmployeeId)
+        {
+            MessageBox.Show(
+                this,
+                "ابتدا اطلاعات پایه کارمند را ذخیره کنید.",
+                "مدیریت منابع انسانی",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1,
+                MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+            return;
+        }
+
+        using var form = new PersonnelRecordsForm(
+            currentEmployeeId,
+            personnelRecordService,
+            dateAdapter,
+            backgroundExecutor,
+            personnelRecordsLogger);
         form.ShowDialog(this);
     }
 }

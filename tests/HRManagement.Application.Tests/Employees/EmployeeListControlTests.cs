@@ -5,6 +5,7 @@ using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
 using HRManagement.Application.Employment;
 using HRManagement.Application.Organization;
+using HRManagement.Application.PersonnelRecords;
 using HRManagement.Domain.Enums;
 using HRManagement.WinForms.Employees;
 using HRManagement.WinForms.Formatting;
@@ -50,13 +51,15 @@ public sealed class EmployeeListControlTests
             new StubEditorService(),
             new StubEmploymentLifecycleService(),
             new StubAssignmentService(),
+            new StubPersonnelRecordService(),
             new ImmediateDelay(),
             new InlineBackgroundExecutor(),
             new StubPersianDateAdapter(),
             NullLogger<EmployeeListPresenter>.Instance,
             NullLogger<EmployeeEditorPresenter>.Instance,
             NullLogger<EmploymentLifecycleForm>.Instance,
-            NullLogger<OrganizationAssignmentsForm>.Instance);
+            NullLogger<OrganizationAssignmentsForm>.Instance,
+            NullLogger<PersonnelRecordsForm>.Instance);
 
     private static T GetPrivateControl<T>(EmployeeListControl control, string fieldName)
         where T : Control =>
@@ -140,6 +143,29 @@ public sealed class EmployeeListControlTests
             long? newPrimaryAssignmentId,
             CancellationToken cancellationToken) =>
             Task.FromResult(OrganizationResult.Success(1));
+    }
+
+    private sealed class StubPersonnelRecordService : IPersonnelRecordService
+    {
+        public Task<PersonnelRecordResult> AddEducationRecordAsync(
+            AddEducationRecordRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(PersonnelRecordResult.Success(1));
+
+        public Task<PersonnelRecordResult> AddDependentAsync(
+            AddDependentRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(PersonnelRecordResult.Success(1));
+
+        public Task<PersonnelRecordResult> AddBankAccountAsync(
+            AddBankAccountRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(PersonnelRecordResult.Success(1));
+
+        public Task<PersonnelRecordResult> IssueAccessCardAsync(
+            IssueAccessCardRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(PersonnelRecordResult.Success(1));
     }
 
     private sealed class ImmediateDelay : IDelay
