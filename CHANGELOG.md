@@ -19,3 +19,4 @@ All notable changes follow Keep a Changelog conventions.
 - Made shutdown disposal paths idempotent and logged host shutdown failures.
 - Replaced count-based log retention with deletion of `hrmanagement-*.log` files older than 30 days.
 - Added initial employment lifecycle application/domain/infrastructure contracts for starting employment, termination, return-to-work, and status changes.
+- Started organization history services for department transfer and responsibility assignment rules.
