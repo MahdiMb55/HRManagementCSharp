@@ -2,6 +2,7 @@ using HRManagement.Application.Abstractions;
 using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
 using HRManagement.Application.Employment;
+using HRManagement.Application.Organization;
 using HRManagement.WinForms.Formatting;
 using Microsoft.Extensions.Logging;
 
@@ -12,10 +13,12 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
     private readonly EmployeeListPresenter presenter;
     private readonly IEmployeeEditorService editorService;
     private readonly IEmploymentLifecycleService lifecycleService;
+    private readonly IAssignmentService assignmentService;
     private readonly IBackgroundExecutor backgroundExecutor;
     private readonly IPersianDateAdapter dateAdapter;
     private readonly ILogger<EmployeeEditorPresenter> editorLogger;
     private readonly ILogger<EmploymentLifecycleForm> lifecycleLogger;
+    private readonly ILogger<OrganizationAssignmentsForm> organizationLogger;
     private readonly CancellationTokenSource lifetime = new();
     private CancellationTokenSource? searchDebounce;
     private EmployeeEditorForm? editorForm;
@@ -27,19 +30,23 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         IEmployeeSearchService searchService,
         IEmployeeEditorService editorService,
         IEmploymentLifecycleService lifecycleService,
+        IAssignmentService assignmentService,
         IDelay delay,
         IBackgroundExecutor backgroundExecutor,
         IPersianDateAdapter dateAdapter,
         ILogger<EmployeeListPresenter> listLogger,
         ILogger<EmployeeEditorPresenter> editorLogger,
-        ILogger<EmploymentLifecycleForm> lifecycleLogger)
+        ILogger<EmploymentLifecycleForm> lifecycleLogger,
+        ILogger<OrganizationAssignmentsForm> organizationLogger)
     {
         this.editorService = editorService;
         this.lifecycleService = lifecycleService;
+        this.assignmentService = assignmentService;
         this.backgroundExecutor = backgroundExecutor;
         this.dateAdapter = dateAdapter;
         this.editorLogger = editorLogger;
         this.lifecycleLogger = lifecycleLogger;
+        this.organizationLogger = organizationLogger;
         InitializeComponent();
         InitializeColumnVisibilityMenu();
         presenter = new EmployeeListPresenter(this, searchService, delay, listLogger, backgroundExecutor);
@@ -242,10 +249,12 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
             editorForm = new EmployeeEditorForm(
                 editorService,
                 lifecycleService,
+                assignmentService,
                 dateAdapter,
                 backgroundExecutor,
                 editorLogger,
-                lifecycleLogger);
+                lifecycleLogger,
+                organizationLogger);
             editorForm.EmployeeSaved += async (_, _) => await presenter.RefreshAsync(lifetime.Token);
         }
 

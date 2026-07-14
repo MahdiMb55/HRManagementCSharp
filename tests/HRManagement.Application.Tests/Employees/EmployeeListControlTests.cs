@@ -4,6 +4,7 @@ using HRManagement.Application.Abstractions;
 using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
 using HRManagement.Application.Employment;
+using HRManagement.Application.Organization;
 using HRManagement.Domain.Enums;
 using HRManagement.WinForms.Employees;
 using HRManagement.WinForms.Formatting;
@@ -48,12 +49,14 @@ public sealed class EmployeeListControlTests
             new StubSearchService(),
             new StubEditorService(),
             new StubEmploymentLifecycleService(),
+            new StubAssignmentService(),
             new ImmediateDelay(),
             new InlineBackgroundExecutor(),
             new StubPersianDateAdapter(),
             NullLogger<EmployeeListPresenter>.Instance,
             NullLogger<EmployeeEditorPresenter>.Instance,
-            NullLogger<EmploymentLifecycleForm>.Instance);
+            NullLogger<EmploymentLifecycleForm>.Instance,
+            NullLogger<OrganizationAssignmentsForm>.Instance);
 
     private static T GetPrivateControl<T>(EmployeeListControl control, string fieldName)
         where T : Control =>
@@ -110,6 +113,33 @@ public sealed class EmployeeListControlTests
             string? notes,
             CancellationToken cancellationToken) =>
             Task.FromResult(EmploymentLifecycleResult.Success(1));
+    }
+
+    private sealed class StubAssignmentService : IAssignmentService
+    {
+        public Task<OrganizationResult> AssignDepartmentAsync(
+            long employeeId,
+            long departmentId,
+            DateOnly startDate,
+            string? transferDescription,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(OrganizationResult.Success(1));
+
+        public Task<OrganizationResult> AssignResponsibilityAsync(
+            long employeeId,
+            long responsibilityId,
+            DateOnly startDate,
+            bool isPrimary,
+            string? notes,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(OrganizationResult.Success(1));
+
+        public Task<OrganizationResult> EndResponsibilityAsync(
+            long assignmentId,
+            DateOnly endDate,
+            long? newPrimaryAssignmentId,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(OrganizationResult.Success(1));
     }
 
     private sealed class ImmediateDelay : IDelay
