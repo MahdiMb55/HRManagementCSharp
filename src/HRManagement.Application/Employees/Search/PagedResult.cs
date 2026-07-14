@@ -1,0 +1,10 @@
+namespace HRManagement.Application.Employees.Search;
+
+public sealed record PagedResult<T>(
+    IReadOnlyList<T> Items,
+    int TotalCount,
+    int PageNumber,
+    int PageSize)
+{
+    public int TotalPages => TotalCount == 0 ? 0 : (int)Math.Ceiling((double)TotalCount / PageSize);
+}
