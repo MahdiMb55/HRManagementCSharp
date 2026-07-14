@@ -16,7 +16,10 @@ Date: 2026-07-14
 | `rtk dotnet test tests\HRManagement.Domain.Tests\HRManagement.Domain.Tests.csproj -c Release --no-build` | Passed: 30 tests. |
 | `rtk dotnet test tests\HRManagement.Application.Tests\HRManagement.Application.Tests.csproj -c Release --no-build` | Passed: 39 tests. |
 | `rtk dotnet test tests\HRManagement.Infrastructure.Tests\HRManagement.Infrastructure.Tests.csproj -c Release --no-build` | Passed: 28 tests. |
-| `rtk dotnet test HRManagement.sln -c Debug --no-build --no-restore` | Timed out after about 15 minutes. The three test projects pass individually; this remains a solution-level VSTest orchestration issue to diagnose. |
+| `rtk proxy dotnet test HRManagement.sln -c Debug --no-build --no-restore --disable-build-servers -m:1 -v minimal` | Passed: 97 tests across 3 test assemblies. |
+| `rtk proxy dotnet test HRManagement.sln -c Release --no-build --no-restore --disable-build-servers -m:1 -v minimal` | Passed: 97 tests across 3 test assemblies. |
+
+Note: solution-level `dotnet test` without `-m:1` timed out after the VSTest solution target printed no actionable test failures. Serializing MSBuild/VSTest execution with `-m:1` avoids that orchestration hang and runs all three test assemblies.
 
 ## Publish
 
