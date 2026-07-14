@@ -6,11 +6,14 @@ using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
 using HRManagement.Application.Employment;
 using HRManagement.Application.Files;
+using HRManagement.Application.ImportExport;
 using HRManagement.Application.Organization;
 using HRManagement.Application.PersonnelRecords;
+using HRManagement.Application.Reports;
 using HRManagement.Domain.Enums;
 using HRManagement.WinForms.Employees;
 using HRManagement.WinForms.Formatting;
+using HRManagement.WinForms.ImportExport;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HRManagement.Application.Tests.Employees;
@@ -56,6 +59,8 @@ public sealed class EmployeeListControlTests
             new StubPersonnelRecordService(),
             new StubEmployeeFileService(),
             new StubEmployeeArchiveService(),
+            new StubEmployeeWorkbookService(),
+            new StubEmployeeSummaryService(),
             new ImmediateDelay(),
             new InlineBackgroundExecutor(),
             new StubPersianDateAdapter(),
@@ -65,7 +70,8 @@ public sealed class EmployeeListControlTests
             NullLogger<OrganizationAssignmentsForm>.Instance,
             NullLogger<PersonnelRecordsForm>.Instance,
             NullLogger<FileRecordsForm>.Instance,
-            NullLogger<ArchiveEmployeeDialog>.Instance);
+            NullLogger<ArchiveEmployeeDialog>.Instance,
+            NullLogger<EmployeeImportExportDialog>.Instance);
 
     private static T GetPrivateControl<T>(EmployeeListControl control, string fieldName)
         where T : Control =>
@@ -205,6 +211,32 @@ public sealed class EmployeeListControlTests
             string? personnelNumberConfirmation,
             CancellationToken cancellationToken) =>
             Task.FromResult(ArchiveResult.Success(employeeId));
+    }
+
+    private sealed class StubEmployeeWorkbookService : IEmployeeWorkbookService
+    {
+        public Task<ImportExportResult> CreateTemplateAsync(
+            string outputPath,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(ImportExportResult.Success(0, outputPath));
+
+        public Task<EmployeeImportPreview> PreviewImportAsync(
+            string inputPath,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(new EmployeeImportPreview([], []));
+
+        public Task<ImportExportResult> ExportAsync(
+            EmployeeExportRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(ImportExportResult.Success(0, request.OutputPath));
+    }
+
+    private sealed class StubEmployeeSummaryService : IEmployeeSummaryService
+    {
+        public Task<EmployeeSummaryResult> CreateAsync(
+            EmployeeSummaryRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(EmployeeSummaryResult.Success(request.OutputPath));
     }
 
     private sealed class ImmediateDelay : IDelay

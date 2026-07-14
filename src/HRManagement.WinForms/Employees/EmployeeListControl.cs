@@ -4,9 +4,12 @@ using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
 using HRManagement.Application.Employment;
 using HRManagement.Application.Files;
+using HRManagement.Application.ImportExport;
 using HRManagement.Application.Organization;
 using HRManagement.Application.PersonnelRecords;
+using HRManagement.Application.Reports;
 using HRManagement.WinForms.Formatting;
+using HRManagement.WinForms.ImportExport;
 using Microsoft.Extensions.Logging;
 
 namespace HRManagement.WinForms.Employees;
@@ -20,6 +23,8 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
     private readonly IPersonnelRecordService personnelRecordService;
     private readonly IEmployeeFileService fileService;
     private readonly IEmployeeArchiveService archiveService;
+    private readonly IEmployeeWorkbookService workbookService;
+    private readonly IEmployeeSummaryService summaryService;
     private readonly IBackgroundExecutor backgroundExecutor;
     private readonly IPersianDateAdapter dateAdapter;
     private readonly ILogger<EmployeeEditorPresenter> editorLogger;
@@ -28,6 +33,7 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
     private readonly ILogger<PersonnelRecordsForm> personnelRecordsLogger;
     private readonly ILogger<FileRecordsForm> fileRecordsLogger;
     private readonly ILogger<ArchiveEmployeeDialog> archiveLogger;
+    private readonly ILogger<EmployeeImportExportDialog> importExportLogger;
     private readonly CancellationTokenSource lifetime = new();
     private CancellationTokenSource? searchDebounce;
     private EmployeeEditorForm? editorForm;
@@ -43,6 +49,8 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         IPersonnelRecordService personnelRecordService,
         IEmployeeFileService fileService,
         IEmployeeArchiveService archiveService,
+        IEmployeeWorkbookService workbookService,
+        IEmployeeSummaryService summaryService,
         IDelay delay,
         IBackgroundExecutor backgroundExecutor,
         IPersianDateAdapter dateAdapter,
@@ -52,7 +60,8 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         ILogger<OrganizationAssignmentsForm> organizationLogger,
         ILogger<PersonnelRecordsForm> personnelRecordsLogger,
         ILogger<FileRecordsForm> fileRecordsLogger,
-        ILogger<ArchiveEmployeeDialog> archiveLogger)
+        ILogger<ArchiveEmployeeDialog> archiveLogger,
+        ILogger<EmployeeImportExportDialog> importExportLogger)
     {
         this.editorService = editorService;
         this.lifecycleService = lifecycleService;
@@ -60,6 +69,8 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         this.personnelRecordService = personnelRecordService;
         this.fileService = fileService;
         this.archiveService = archiveService;
+        this.workbookService = workbookService;
+        this.summaryService = summaryService;
         this.backgroundExecutor = backgroundExecutor;
         this.dateAdapter = dateAdapter;
         this.editorLogger = editorLogger;
@@ -68,6 +79,7 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         this.personnelRecordsLogger = personnelRecordsLogger;
         this.fileRecordsLogger = fileRecordsLogger;
         this.archiveLogger = archiveLogger;
+        this.importExportLogger = importExportLogger;
         InitializeComponent();
         InitializeColumnVisibilityMenu();
         presenter = new EmployeeListPresenter(this, searchService, delay, listLogger, backgroundExecutor);
@@ -207,6 +219,7 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         editEmployeeButton.Click += async (_, _) => await OpenSelectedEmployeeAsync();
         advancedFilterButton.Click += async (_, _) => await ShowAdvancedFilterAsync();
         archiveEmployeeButton.Click += async (_, _) => await ShowArchiveDialogAsync();
+        importExportButton.Click += (_, _) => ShowImportExportDialog();
     }
 
     private void InitializeColumnVisibilityMenu()
@@ -346,5 +359,26 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
             archiveLogger);
         dialog.ShowDialog(FindForm());
         await presenter.RefreshAsync(lifetime.Token);
+    }
+
+    private void ShowImportExportDialog()
+    {
+        var selectedIds = employeesGrid.SelectedRows
+            .Cast<DataGridViewRow>()
+            .Select(row => row.DataBoundItem)
+            .OfType<EmployeeListItemDto>()
+            .Select(employee => employee.EmployeeId)
+            .Distinct()
+            .ToArray();
+        using var dialog = new EmployeeImportExportDialog(
+            workbookService,
+            summaryService,
+            backgroundExecutor,
+            Filter,
+            Sort,
+            SearchText,
+            selectedIds,
+            importExportLogger);
+        dialog.ShowDialog(FindForm());
     }
 }

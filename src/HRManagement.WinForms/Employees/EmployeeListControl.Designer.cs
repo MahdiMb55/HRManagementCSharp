@@ -10,6 +10,7 @@ partial class EmployeeListControl
     private ContextMenuStrip columnVisibilityMenu = null!;
     private Button advancedFilterButton = null!;
     private Button archiveEmployeeButton = null!;
+    private Button importExportButton = null!;
     private Button addEmployeeButton = null!;
     private Button editEmployeeButton = null!;
     private DataGridView employeesGrid = null!;
@@ -31,6 +32,7 @@ partial class EmployeeListControl
         columnVisibilityMenu = new ContextMenuStrip();
         advancedFilterButton = new Button();
         archiveEmployeeButton = new Button();
+        importExportButton = new Button();
         addEmployeeButton = new Button();
         editEmployeeButton = new Button();
         employeesGrid = new DataGridView();
@@ -65,6 +67,8 @@ partial class EmployeeListControl
         archiveEmployeeButton.AutoSize = true;
         archiveEmployeeButton.Enabled = false;
         archiveEmployeeButton.Text = "بایگانی";
+        importExportButton.AutoSize = true;
+        importExportButton.Text = "ورود/خروجی";
         pageSizeComboBox.SelectedIndex = 0;
         pageSizeComboBox.Width = 72;
         addEmployeeButton.Text = "افزودن کارمند";
@@ -76,6 +80,7 @@ partial class EmployeeListControl
         toolbarPanel.Controls.Add(editEmployeeButton);
         toolbarPanel.Controls.Add(archiveEmployeeButton);
         toolbarPanel.Controls.Add(advancedFilterButton);
+        toolbarPanel.Controls.Add(importExportButton);
         toolbarPanel.Controls.Add(columnVisibilityButton);
         toolbarPanel.Controls.Add(searchTextBox);
         toolbarPanel.Controls.Add(new Label { Text = "تعداد در صفحه:", AutoSize = true, Padding = new Padding(4, 7, 4, 0) });
