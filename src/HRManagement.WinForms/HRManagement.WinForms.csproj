@@ -18,4 +18,13 @@
     <PackageReference Include="Serilog.Extensions.Hosting" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Resources\Fonts\Vazirmatn-Variable.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Fonts\OFL.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

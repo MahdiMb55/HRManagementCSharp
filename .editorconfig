@@ -21,6 +21,9 @@ dotnet_diagnostic.CA1707.severity = none
 dotnet_diagnostic.CA1000.severity = none
 # Persisted enum member names come from the approved domain language.
 dotnet_diagnostic.CA1720.severity = none
+# Desktop lifecycle logs are infrequent; structured extension methods keep these call sites clearer.
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1873.severity = none
 
 [*.{csproj,props,targets,sln}]
 indent_style = space

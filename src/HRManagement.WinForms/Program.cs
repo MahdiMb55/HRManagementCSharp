@@ -1,16 +1,27 @@
+using HRManagement.WinForms.Startup;
+
 namespace HRManagement.WinForms;
 
-static class Program
+internal static class Program
 {
-    /// <summary>
-    ///  The main entry point for the application.
-    /// </summary>
     [STAThread]
-    static void Main()
+    private static void Main()
     {
-        // To customize application configuration such as set high DPI settings or default font,
-        // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
-        System.Windows.Forms.Application.Run(new Form1());
+        using var instanceGuard = SingleInstanceGuard.TryAcquire();
+        if (!instanceGuard.IsPrimaryInstance)
+        {
+            MessageBox.Show(
+                "برنامه هم‌اکنون در حال اجرا است.",
+                "مدیریت منابع انسانی",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1,
+                MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+            return;
+        }
+
+        using var context = new StartupApplicationContext();
+        System.Windows.Forms.Application.Run(context);
     }
 }
