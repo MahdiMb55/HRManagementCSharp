@@ -1,6 +1,7 @@
 using HRManagement.WinForms.Backups;
 using HRManagement.WinForms.Controls;
 using HRManagement.WinForms.Employees;
+using HRManagement.WinForms.Letters;
 
 namespace HRManagement.WinForms.Forms;
 
@@ -9,19 +10,23 @@ public partial class MainForm : Form
     private readonly DashboardControl dashboardControl;
     private readonly EmployeeListControl employeeListControl;
     private readonly BackupsControl backupsControl;
+    private readonly LetterIssuanceControl letterIssuanceControl;
     private readonly Dictionary<string, Control> placeholderPages = [];
     private readonly CancellationTokenSource lifetime = new();
     private bool employeesInitialized;
     private bool backupsInitialized;
+    private bool lettersInitialized;
 
     public MainForm(
         DashboardControl dashboardControl,
         EmployeeListControl employeeListControl,
-        BackupsControl backupsControl)
+        BackupsControl backupsControl,
+        LetterIssuanceControl letterIssuanceControl)
     {
         this.dashboardControl = dashboardControl;
         this.employeeListControl = employeeListControl;
         this.backupsControl = backupsControl;
+        this.letterIssuanceControl = letterIssuanceControl;
         InitializeComponent();
         WireNavigation();
     }
@@ -56,6 +61,7 @@ public partial class MainForm : Form
         };
         departmentsButton.Click += (_, _) => ShowMessagePage("واحدهای سازمانی", "مدیریت واحدهای سازمانی در مرحله سازماندهی سوابق فعال می‌شود.");
         responsibilitiesButton.Click += (_, _) => ShowMessagePage("مسئولیت‌ها", "مدیریت مسئولیت‌ها در مرحله سازماندهی سوابق فعال می‌شود.");
+        lettersButton.Click += async (_, _) => await ShowLettersAsync();
         archiveButton.Click += (_, _) => ShowMessagePage("بایگانی", "بایگانی کارکنان در مرحله بایگانی و بازیابی فعال می‌شود.");
         backupsButton.Click += async (_, _) => await ShowAdministrationAsync("پشتیبان‌گیری");
         settingsButton.Click += async (_, _) => await ShowAdministrationAsync("تنظیمات");
@@ -83,6 +89,16 @@ public partial class MainForm : Form
         {
             backupsInitialized = true;
             await backupsControl.InitializeAsync(lifetime.Token);
+        }
+    }
+
+    private async Task ShowLettersAsync()
+    {
+        ShowPage(letterIssuanceControl, "نامه‌ها");
+        if (!lettersInitialized)
+        {
+            lettersInitialized = true;
+            await letterIssuanceControl.InitializeAsync(lifetime.Token);
         }
     }
 

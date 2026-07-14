@@ -11,6 +11,7 @@ partial class MainForm
     private Button employeesButton = null!;
     private Button departmentsButton = null!;
     private Button responsibilitiesButton = null!;
+    private Button lettersButton = null!;
     private Button archiveButton = null!;
     private Button backupsButton = null!;
     private Button settingsButton = null!;
@@ -26,6 +27,7 @@ partial class MainForm
         employeesButton = CreateNavigationButton("کارکنان");
         departmentsButton = CreateNavigationButton("واحدهای سازمانی");
         responsibilitiesButton = CreateNavigationButton("مسئولیت‌ها");
+        lettersButton = CreateNavigationButton("نامه‌ها");
         archiveButton = CreateNavigationButton("بایگانی");
         backupsButton = CreateNavigationButton("پشتیبان‌گیری");
         settingsButton = CreateNavigationButton("تنظیمات");
@@ -43,6 +45,7 @@ partial class MainForm
         navigationPanel.Controls.Add(settingsButton);
         navigationPanel.Controls.Add(backupsButton);
         navigationPanel.Controls.Add(archiveButton);
+        navigationPanel.Controls.Add(lettersButton);
         navigationPanel.Controls.Add(responsibilitiesButton);
         navigationPanel.Controls.Add(departmentsButton);
         navigationPanel.Controls.Add(employeesButton);
