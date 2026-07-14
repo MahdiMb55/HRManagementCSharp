@@ -1,46 +1,60 @@
 # Production verification
 
-Final verification is intentionally deferred until all milestones are complete.
+Date: 2026-07-14
+
+## Automated verification
+
+| Gate | Result |
+| --- | --- |
+| `rtk proxy dotnet format HRManagement.sln --verify-no-changes --no-restore` | Passed. |
+| `rtk git diff --check` | Passed. |
+| `rtk dotnet build HRManagement.sln -c Debug --no-restore` | Passed: 8 projects, 0 errors, 7 analyzer warnings. |
+| `rtk dotnet build HRManagement.sln -c Release --no-restore` | Passed: 8 projects, 0 errors, 7 analyzer warnings. |
+| `rtk dotnet test tests\HRManagement.Domain.Tests\HRManagement.Domain.Tests.csproj -c Debug --no-build` | Passed: 30 tests. |
+| `rtk dotnet test tests\HRManagement.Application.Tests\HRManagement.Application.Tests.csproj -c Debug --no-build` | Passed: 39 tests. |
+| `rtk dotnet test tests\HRManagement.Infrastructure.Tests\HRManagement.Infrastructure.Tests.csproj -c Debug --no-build` | Passed: 28 tests. |
+| `rtk dotnet test tests\HRManagement.Domain.Tests\HRManagement.Domain.Tests.csproj -c Release --no-build` | Passed: 30 tests. |
+| `rtk dotnet test tests\HRManagement.Application.Tests\HRManagement.Application.Tests.csproj -c Release --no-build` | Passed: 39 tests. |
+| `rtk dotnet test tests\HRManagement.Infrastructure.Tests\HRManagement.Infrastructure.Tests.csproj -c Release --no-build` | Passed: 28 tests. |
+| `rtk dotnet test HRManagement.sln -c Debug --no-build --no-restore` | Timed out after about 15 minutes. The three test projects pass individually; this remains a solution-level VSTest orchestration issue to diagnose. |
 
 ## Publish
 
-```powershell
-scripts\Publish.ps1
-scripts\Verify-Publish.ps1
-```
+| Gate | Result |
+| --- | --- |
+| `rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Publish.ps1` | Passed. Published to `artifacts\publish\win-x64`. |
+| `rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Verify-Publish.ps1` | Passed for `D:\Programs\C#\HRManagementCSharp\artifacts\publish\win-x64`. |
 
-Expected evidence:
+Observed publish evidence:
 
-- Release `win-x64` self-contained publish exists under `artifacts\publish\win-x64`.
-- `HRManagement.WinForms.exe` launches from the publish directory.
-- bundled `Vazirmatn-Variable.ttf` and `OFL.txt` exist in the publish output.
-- no development SQLite database is published.
-- first run creates writable `Data` subdirectories next to the executable.
+- `artifacts\publish\win-x64\HRManagement.WinForms.exe` exists.
+- Bundled font files are included under `Resources\Fonts`.
+- No `Data` directory is present in the publish output.
 
 ## Installer
 
-Compile `installer\HRManagement.iss` with Inno Setup after publish verification.
+| Gate | Result |
+| --- | --- |
+| `rtk proxy "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\HRManagement.iss` | Passed with Inno Setup 6.7.3. |
 
-Expected evidence:
+Observed installer evidence:
 
-- setup executable exists under `artifacts\installer`.
-- install destination is writable by the target operator.
-- installer creates/preserves `{app}\Data`.
-- uninstall warns that operational data is preserved.
-- no Windows service is installed.
+- Setup executable exists at `D:\Programs\C#\HRManagementCSharp\artifacts\installer\HRManagementSetup.exe`.
+- Setup executable size: 39,931,101 bytes.
+- Installer script creates `{app}\Data` and required subdirectories with user modify permissions.
+- Installer excludes `Data\*` from application file copy.
+- Uninstall code displays an operational-data-preservation warning.
 
 ## Installed-machine acceptance
 
-Run these checks on a clean Windows machine or VM:
+Not yet verified on a clean Windows machine or VM:
 
 1. Install into a writable directory.
 2. Launch first run and confirm dashboard opens.
-3. Confirm `Data\Database\hr-management.db` is created after initialization.
+3. Confirm `Data\Database\hr-management.db` is created during initialization.
 4. Add an employee, close, reopen, and confirm data remains.
-5. Run a backup from the administration page.
+5. Run the backup administration page.
 6. Upgrade in place with a newer build and confirm `Data` is preserved.
-7. Delete or rename the database after `.initialized`, relaunch, and confirm startup integrity handling is shown.
+7. Rename or delete the database after `.initialized`, relaunch, and confirm startup integrity handling is shown.
 8. Attempt a second app instance and confirm single-instance behavior.
 9. Uninstall and confirm the uninstall warning preserves operational data.
-
-Record exact dates, machine name, installer path, publish path, and observed results in this document during final verification.
