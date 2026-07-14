@@ -1,4 +1,5 @@
 using HRManagement.Application.Abstractions;
+using HRManagement.Application.Archive;
 using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
 using HRManagement.Application.Employment;
@@ -18,6 +19,7 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
     private readonly IAssignmentService assignmentService;
     private readonly IPersonnelRecordService personnelRecordService;
     private readonly IEmployeeFileService fileService;
+    private readonly IEmployeeArchiveService archiveService;
     private readonly IBackgroundExecutor backgroundExecutor;
     private readonly IPersianDateAdapter dateAdapter;
     private readonly ILogger<EmployeeEditorPresenter> editorLogger;
@@ -25,6 +27,7 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
     private readonly ILogger<OrganizationAssignmentsForm> organizationLogger;
     private readonly ILogger<PersonnelRecordsForm> personnelRecordsLogger;
     private readonly ILogger<FileRecordsForm> fileRecordsLogger;
+    private readonly ILogger<ArchiveEmployeeDialog> archiveLogger;
     private readonly CancellationTokenSource lifetime = new();
     private CancellationTokenSource? searchDebounce;
     private EmployeeEditorForm? editorForm;
@@ -39,6 +42,7 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         IAssignmentService assignmentService,
         IPersonnelRecordService personnelRecordService,
         IEmployeeFileService fileService,
+        IEmployeeArchiveService archiveService,
         IDelay delay,
         IBackgroundExecutor backgroundExecutor,
         IPersianDateAdapter dateAdapter,
@@ -47,13 +51,15 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         ILogger<EmploymentLifecycleForm> lifecycleLogger,
         ILogger<OrganizationAssignmentsForm> organizationLogger,
         ILogger<PersonnelRecordsForm> personnelRecordsLogger,
-        ILogger<FileRecordsForm> fileRecordsLogger)
+        ILogger<FileRecordsForm> fileRecordsLogger,
+        ILogger<ArchiveEmployeeDialog> archiveLogger)
     {
         this.editorService = editorService;
         this.lifecycleService = lifecycleService;
         this.assignmentService = assignmentService;
         this.personnelRecordService = personnelRecordService;
         this.fileService = fileService;
+        this.archiveService = archiveService;
         this.backgroundExecutor = backgroundExecutor;
         this.dateAdapter = dateAdapter;
         this.editorLogger = editorLogger;
@@ -61,6 +67,7 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         this.organizationLogger = organizationLogger;
         this.personnelRecordsLogger = personnelRecordsLogger;
         this.fileRecordsLogger = fileRecordsLogger;
+        this.archiveLogger = archiveLogger;
         InitializeComponent();
         InitializeColumnVisibilityMenu();
         presenter = new EmployeeListPresenter(this, searchService, delay, listLogger, backgroundExecutor);
@@ -198,6 +205,8 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         };
         addEmployeeButton.Click += async (_, _) => await ShowEditorAsync(null);
         editEmployeeButton.Click += async (_, _) => await OpenSelectedEmployeeAsync();
+        advancedFilterButton.Click += async (_, _) => await ShowAdvancedFilterAsync();
+        archiveEmployeeButton.Click += async (_, _) => await ShowArchiveDialogAsync();
     }
 
     private void InitializeColumnVisibilityMenu()
@@ -296,14 +305,46 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
         {
             employeeSummaryLabel.Text = "یک کارمند را انتخاب کنید.";
             editEmployeeButton.Enabled = false;
+            archiveEmployeeButton.Enabled = false;
             return;
         }
 
         editEmployeeButton.Enabled = true;
+        archiveEmployeeButton.Enabled = true;
         employeeSummaryLabel.Text =
             $"{employee.FirstName} {employee.LastName}\r\n" +
             $"شماره پرسنلی: {employee.PersonnelNumber}\r\n" +
             $"واحد: {employee.DepartmentName ?? "—"}\r\n" +
             $"مسئولیت اصلی: {employee.PrimaryResponsibility ?? "—"}";
+    }
+
+    private async Task ShowAdvancedFilterAsync()
+    {
+        using var dialog = new AdvancedFilterDialog(Filter);
+        if (dialog.ShowDialog(FindForm()) != DialogResult.OK)
+        {
+            return;
+        }
+
+        Filter = dialog.Filter;
+        PageNumber = 1;
+        await presenter.RefreshAsync(lifetime.Token);
+    }
+
+    private async Task ShowArchiveDialogAsync()
+    {
+        if (employeesGrid.CurrentRow?.DataBoundItem is not EmployeeListItemDto employee)
+        {
+            return;
+        }
+
+        using var dialog = new ArchiveEmployeeDialog(
+            employee.EmployeeId,
+            employee.PersonnelNumber,
+            archiveService,
+            backgroundExecutor,
+            archiveLogger);
+        dialog.ShowDialog(FindForm());
+        await presenter.RefreshAsync(lifetime.Token);
     }
 }

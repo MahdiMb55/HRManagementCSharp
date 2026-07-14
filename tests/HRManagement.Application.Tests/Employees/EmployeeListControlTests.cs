@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Globalization;
 using HRManagement.Application.Abstractions;
+using HRManagement.Application.Archive;
 using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
 using HRManagement.Application.Employment;
@@ -54,6 +55,7 @@ public sealed class EmployeeListControlTests
             new StubAssignmentService(),
             new StubPersonnelRecordService(),
             new StubEmployeeFileService(),
+            new StubEmployeeArchiveService(),
             new ImmediateDelay(),
             new InlineBackgroundExecutor(),
             new StubPersianDateAdapter(),
@@ -62,7 +64,8 @@ public sealed class EmployeeListControlTests
             NullLogger<EmploymentLifecycleForm>.Instance,
             NullLogger<OrganizationAssignmentsForm>.Instance,
             NullLogger<PersonnelRecordsForm>.Instance,
-            NullLogger<FileRecordsForm>.Instance);
+            NullLogger<FileRecordsForm>.Instance,
+            NullLogger<ArchiveEmployeeDialog>.Instance);
 
     private static T GetPrivateControl<T>(EmployeeListControl control, string fieldName)
         where T : Control =>
@@ -187,6 +190,21 @@ public sealed class EmployeeListControlTests
             SetProfilePhotoRequest request,
             CancellationToken cancellationToken) =>
             Task.FromResult(FileRecordResult.Success(1));
+    }
+
+    private sealed class StubEmployeeArchiveService : IEmployeeArchiveService
+    {
+        public Task<ArchiveResult> ArchiveAsync(long employeeId, CancellationToken cancellationToken) =>
+            Task.FromResult(ArchiveResult.Success(employeeId));
+
+        public Task<ArchiveResult> RestoreAsync(long employeeId, CancellationToken cancellationToken) =>
+            Task.FromResult(ArchiveResult.Success(employeeId));
+
+        public Task<ArchiveResult> DeletePermanentlyAsync(
+            long employeeId,
+            string? personnelNumberConfirmation,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(ArchiveResult.Success(employeeId));
     }
 
     private sealed class ImmediateDelay : IDelay
