@@ -1,4 +1,5 @@
 using HRManagement.Application.Abstractions;
+using HRManagement.Application.Archive;
 using HRManagement.Application.Dashboard;
 using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
@@ -6,6 +7,7 @@ using HRManagement.Application.Employment;
 using HRManagement.Application.Files;
 using HRManagement.Application.Organization;
 using HRManagement.Application.PersonnelRecords;
+using HRManagement.Infrastructure.Archive;
 using HRManagement.Infrastructure.Dashboard;
 using HRManagement.Infrastructure.Employees;
 using HRManagement.Infrastructure.Employment;
@@ -67,6 +69,8 @@ public static class ServiceRegistration
         services.AddScoped<IManagedFileStore, ManagedFileStore>();
         services.AddScoped<IEmployeeFileRepository, EfEmployeeFileRepository>();
         services.AddScoped<IEmployeeFileService, EmployeeFileService>();
+        services.AddScoped<IEmployeeArchiveRepository, EfEmployeeArchiveRepository>();
+        services.AddScoped<IEmployeeArchiveService, EmployeeArchiveService>();
         services.AddScoped<IDashboardService, EfDashboardService>();
         services.AddSingleton<IPersianDateAdapter, PersianDateAdapter>();
         services.AddSingleton<PrivateFontService>();

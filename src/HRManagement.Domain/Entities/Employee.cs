@@ -98,4 +98,18 @@ public sealed class Employee : AuditableEntity
         ProfilePhotoFileId = managedFileId;
         Touch(nowUtc);
     }
+
+    public void Archive(DateTime nowUtc)
+    {
+        IsDeleted = true;
+        DeletedAtUtc = nowUtc.Kind == DateTimeKind.Utc ? nowUtc : nowUtc.ToUniversalTime();
+        Touch(nowUtc);
+    }
+
+    public void Restore(DateTime nowUtc)
+    {
+        IsDeleted = false;
+        DeletedAtUtc = null;
+        Touch(nowUtc);
+    }
 }

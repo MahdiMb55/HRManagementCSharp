@@ -6,7 +6,8 @@ public sealed record EmployeeFilter(
     IReadOnlyCollection<EmploymentStatus> EmploymentStatuses,
     IReadOnlyCollection<long> DepartmentIds,
     IReadOnlyCollection<long> ResponsibilityIds,
-    bool IncludeDeparted)
+    bool IncludeDeparted,
+    bool IncludeArchived = false)
 {
     public static EmployeeFilter Default { get; } = new([], [], [], false);
 }

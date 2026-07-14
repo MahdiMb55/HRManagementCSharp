@@ -24,7 +24,7 @@ public sealed class EfEmployeeSearchRepository(
         var rows =
             from employee in context.Employees.AsNoTracking()
             join person in context.Persons.AsNoTracking() on employee.PersonId equals person.Id
-            where !employee.IsDeleted
+            where request.Filter.IncludeArchived || !employee.IsDeleted
             select new EmployeeSearchRow
             {
                 EmployeeId = employee.Id,
