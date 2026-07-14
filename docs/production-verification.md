@@ -50,14 +50,21 @@ Observed installer evidence:
 
 ## Installed-machine acceptance
 
-Not yet verified on a clean Windows machine or VM:
+Local installed smoke verification was run against `D:\Programs\C#\HRManagementCSharp\artifacts\installed\HRManagement` after silent install into a writable directory.
 
-1. Install into a writable directory.
-2. Launch first run and confirm dashboard opens.
-3. Confirm `Data\Database\hr-management.db` is created during initialization.
-4. Add an employee, close, reopen, and confirm data remains.
-5. Run the backup administration page.
-6. Upgrade in place with a newer build and confirm `Data` is preserved.
-7. Rename or delete the database after `.initialized`, relaunch, and confirm startup integrity handling is shown.
-8. Attempt a second app instance and confirm single-instance behavior.
-9. Uninstall and confirm the uninstall warning preserves operational data.
+| Gate | Result |
+| --- | --- |
+| Silent install with `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR=artifacts\installed\HRManagement` | Passed with exit code 0. |
+| Installer log `artifacts\installer\silent-install.log` | Passed: 0 errors and 0 warnings. |
+| Reinstall/upgrade into the same writable directory | Passed with exit code 0; existing `Data` directory remained present. |
+| Installed first launch smoke | Passed: process stayed running after 5 seconds. |
+| Installed data initialization | Passed: `Data\Database\hr-management.db`, `Data\.initialized`, and application log file were created. |
+| Installed second-instance smoke | Passed: first process remained running, second process exited, and only one installed `HRManagement.WinForms.exe` process remained. |
+
+Still requiring manual UI or clean-machine verification:
+
+1. Confirm dashboard contents visually on a clean Windows machine or VM.
+2. Add an employee through the installed UI, close, reopen, and confirm data remains.
+3. Run the backup administration page through the installed UI.
+4. Rename or delete the database after `.initialized`, relaunch, and confirm startup integrity handling is shown visually.
+5. Uninstall and confirm the uninstall warning preserves operational data.
