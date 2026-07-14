@@ -1,5 +1,6 @@
 using HRManagement.Application.Abstractions;
 using HRManagement.Application.Employees;
+using HRManagement.Application.Employment;
 using HRManagement.Domain.Enums;
 using HRManagement.WinForms.Formatting;
 using Microsoft.Extensions.Logging;
@@ -9,8 +10,10 @@ namespace HRManagement.WinForms.Employees;
 public partial class EmployeeEditorForm : Form, IEmployeeEditorView
 {
     private readonly EmployeeEditorPresenter presenter;
+    private readonly IEmploymentLifecycleService lifecycleService;
     private readonly IPersianDateAdapter dateAdapter;
     private readonly IBackgroundExecutor backgroundExecutor;
+    private readonly ILogger<EmploymentLifecycleForm> lifecycleLogger;
     private readonly CancellationTokenSource lifetime = new();
     private long? employeeId;
     private bool isDirty;
@@ -19,12 +22,16 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
 
     public EmployeeEditorForm(
         IEmployeeEditorService editorService,
+        IEmploymentLifecycleService lifecycleService,
         IPersianDateAdapter dateAdapter,
         IBackgroundExecutor backgroundExecutor,
-        ILogger<EmployeeEditorPresenter> logger)
+        ILogger<EmployeeEditorPresenter> logger,
+        ILogger<EmploymentLifecycleForm> lifecycleLogger)
     {
+        this.lifecycleService = lifecycleService;
         this.dateAdapter = dateAdapter;
         this.backgroundExecutor = backgroundExecutor;
+        this.lifecycleLogger = lifecycleLogger;
         InitializeComponent();
         presenter = new EmployeeEditorPresenter(this, editorService, logger, backgroundExecutor);
         WireEvents();
@@ -58,6 +65,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
             ClearForm();
             employeeId = selectedEmployeeId;
             personnelNumberTextBox.ReadOnly = selectedEmployeeId is not null;
+            employmentLifecycleButton.Enabled = selectedEmployeeId is not null;
             Text = selectedEmployeeId is null ? "افزودن کارمند" : "ویرایش اطلاعات کارمند";
             if (selectedEmployeeId is long id)
             {
@@ -127,6 +135,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
         this.employeeId = employeeId;
         isDirty = false;
         personnelNumberTextBox.ReadOnly = true;
+        employmentLifecycleButton.Enabled = true;
         EmployeeSaved?.Invoke(this, employeeId);
         MessageBox.Show(
             this,
@@ -197,6 +206,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
 
             await presenter.SaveAsync(lifetime.Token);
         };
+        employmentLifecycleButton.Click += (_, _) => ShowEmploymentLifecycle();
         cancelButton.Click += (_, _) => Close();
     }
 
@@ -226,5 +236,30 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
 
         genderComboBox.SelectedIndex = 0;
         errorProvider.Clear();
+        employmentLifecycleButton.Enabled = false;
+    }
+
+    private void ShowEmploymentLifecycle()
+    {
+        if (employeeId is not long currentEmployeeId)
+        {
+            MessageBox.Show(
+                this,
+                "ابتدا اطلاعات پایه کارمند را ذخیره کنید.",
+                "مدیریت منابع انسانی",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1,
+                MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+            return;
+        }
+
+        using var form = new EmploymentLifecycleForm(
+            currentEmployeeId,
+            lifecycleService,
+            dateAdapter,
+            backgroundExecutor,
+            lifecycleLogger);
+        form.ShowDialog(this);
     }
 }

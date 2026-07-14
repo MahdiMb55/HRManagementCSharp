@@ -12,6 +12,7 @@ partial class EmployeeEditorForm
     private TextBox birthDateTextBox = null!;
     private TextBox mobileTextBox = null!;
     private FlowLayoutPanel actionsPanel = null!;
+    private Button employmentLifecycleButton = null!;
     private Button saveButton = null!;
     private Button cancelButton = null!;
     private Label busyLabel = null!;
@@ -29,6 +30,7 @@ partial class EmployeeEditorForm
         birthDateTextBox = new TextBox();
         mobileTextBox = new TextBox();
         actionsPanel = new FlowLayoutPanel();
+        employmentLifecycleButton = new Button();
         saveButton = new Button();
         cancelButton = new Button();
         busyLabel = new Label();
@@ -56,6 +58,9 @@ partial class EmployeeEditorForm
         actionsPanel.FlowDirection = FlowDirection.RightToLeft;
         actionsPanel.Height = 58;
         actionsPanel.Padding = new Padding(20, 10, 20, 8);
+        employmentLifecycleButton.AutoSize = true;
+        employmentLifecycleButton.Enabled = false;
+        employmentLifecycleButton.Text = "سوابق استخدام";
         saveButton.Text = "ذخیره";
         saveButton.Width = 100;
         cancelButton.Text = "بستن";
@@ -64,6 +69,7 @@ partial class EmployeeEditorForm
         busyLabel.AutoSize = true;
         busyLabel.Padding = new Padding(8);
         busyLabel.Visible = false;
+        actionsPanel.Controls.Add(employmentLifecycleButton);
         actionsPanel.Controls.Add(saveButton);
         actionsPanel.Controls.Add(cancelButton);
         actionsPanel.Controls.Add(busyLabel);

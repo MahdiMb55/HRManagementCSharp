@@ -3,6 +3,7 @@ using System.Globalization;
 using HRManagement.Application.Abstractions;
 using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
+using HRManagement.Application.Employment;
 using HRManagement.Domain.Enums;
 using HRManagement.WinForms.Employees;
 using HRManagement.WinForms.Formatting;
@@ -46,11 +47,13 @@ public sealed class EmployeeListControlTests
         new(
             new StubSearchService(),
             new StubEditorService(),
+            new StubEmploymentLifecycleService(),
             new ImmediateDelay(),
             new InlineBackgroundExecutor(),
             new StubPersianDateAdapter(),
             NullLogger<EmployeeListPresenter>.Instance,
-            NullLogger<EmployeeEditorPresenter>.Instance);
+            NullLogger<EmployeeEditorPresenter>.Instance,
+            NullLogger<EmploymentLifecycleForm>.Instance);
 
     private static T GetPrivateControl<T>(EmployeeListControl control, string fieldName)
         where T : Control =>
@@ -73,6 +76,40 @@ public sealed class EmployeeListControlTests
 
         public Task<SaveEmployeeResult> SaveAsync(SaveEmployeeRequest request, CancellationToken cancellationToken) =>
             Task.FromResult(SaveEmployeeResult.Success(1));
+    }
+
+    private sealed class StubEmploymentLifecycleService : IEmploymentLifecycleService
+    {
+        public Task<EmploymentLifecycleResult> StartEmploymentAsync(
+            long employeeId,
+            DateOnly hireDate,
+            string? notes,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(EmploymentLifecycleResult.Success(1));
+
+        public Task<EmploymentLifecycleResult> TerminateAsync(
+            long employeeId,
+            DateOnly terminationDate,
+            TerminationType terminationType,
+            string reason,
+            string? notes,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(EmploymentLifecycleResult.Success(1));
+
+        public Task<EmploymentLifecycleResult> ReturnToWorkAsync(
+            long employeeId,
+            DateOnly returnDate,
+            string? notes,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(EmploymentLifecycleResult.Success(1));
+
+        public Task<EmploymentLifecycleResult> ChangeStatusAsync(
+            long employeeId,
+            EmploymentStatus status,
+            DateOnly startDate,
+            string? notes,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(EmploymentLifecycleResult.Success(1));
     }
 
     private sealed class ImmediateDelay : IDelay

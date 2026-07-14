@@ -1,6 +1,7 @@
 using HRManagement.Application.Abstractions;
 using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
+using HRManagement.Application.Employment;
 using HRManagement.WinForms.Formatting;
 using Microsoft.Extensions.Logging;
 
@@ -10,9 +11,11 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
 {
     private readonly EmployeeListPresenter presenter;
     private readonly IEmployeeEditorService editorService;
+    private readonly IEmploymentLifecycleService lifecycleService;
     private readonly IBackgroundExecutor backgroundExecutor;
     private readonly IPersianDateAdapter dateAdapter;
     private readonly ILogger<EmployeeEditorPresenter> editorLogger;
+    private readonly ILogger<EmploymentLifecycleForm> lifecycleLogger;
     private readonly CancellationTokenSource lifetime = new();
     private CancellationTokenSource? searchDebounce;
     private EmployeeEditorForm? editorForm;
@@ -23,16 +26,20 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
     public EmployeeListControl(
         IEmployeeSearchService searchService,
         IEmployeeEditorService editorService,
+        IEmploymentLifecycleService lifecycleService,
         IDelay delay,
         IBackgroundExecutor backgroundExecutor,
         IPersianDateAdapter dateAdapter,
         ILogger<EmployeeListPresenter> listLogger,
-        ILogger<EmployeeEditorPresenter> editorLogger)
+        ILogger<EmployeeEditorPresenter> editorLogger,
+        ILogger<EmploymentLifecycleForm> lifecycleLogger)
     {
         this.editorService = editorService;
+        this.lifecycleService = lifecycleService;
         this.backgroundExecutor = backgroundExecutor;
         this.dateAdapter = dateAdapter;
         this.editorLogger = editorLogger;
+        this.lifecycleLogger = lifecycleLogger;
         InitializeComponent();
         InitializeColumnVisibilityMenu();
         presenter = new EmployeeListPresenter(this, searchService, delay, listLogger, backgroundExecutor);
@@ -232,7 +239,13 @@ public partial class EmployeeListControl : UserControl, IEmployeeListView
     {
         if (editorForm is null || editorForm.IsDisposed)
         {
-            editorForm = new EmployeeEditorForm(editorService, dateAdapter, backgroundExecutor, editorLogger);
+            editorForm = new EmployeeEditorForm(
+                editorService,
+                lifecycleService,
+                dateAdapter,
+                backgroundExecutor,
+                editorLogger,
+                lifecycleLogger);
             editorForm.EmployeeSaved += async (_, _) => await presenter.RefreshAsync(lifetime.Token);
         }
 
