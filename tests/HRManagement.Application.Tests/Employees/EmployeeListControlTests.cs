@@ -4,6 +4,7 @@ using HRManagement.Application.Abstractions;
 using HRManagement.Application.Employees;
 using HRManagement.Application.Employees.Search;
 using HRManagement.Application.Employment;
+using HRManagement.Application.Files;
 using HRManagement.Application.Organization;
 using HRManagement.Application.PersonnelRecords;
 using HRManagement.Domain.Enums;
@@ -52,6 +53,7 @@ public sealed class EmployeeListControlTests
             new StubEmploymentLifecycleService(),
             new StubAssignmentService(),
             new StubPersonnelRecordService(),
+            new StubEmployeeFileService(),
             new ImmediateDelay(),
             new InlineBackgroundExecutor(),
             new StubPersianDateAdapter(),
@@ -59,7 +61,8 @@ public sealed class EmployeeListControlTests
             NullLogger<EmployeeEditorPresenter>.Instance,
             NullLogger<EmploymentLifecycleForm>.Instance,
             NullLogger<OrganizationAssignmentsForm>.Instance,
-            NullLogger<PersonnelRecordsForm>.Instance);
+            NullLogger<PersonnelRecordsForm>.Instance,
+            NullLogger<FileRecordsForm>.Instance);
 
     private static T GetPrivateControl<T>(EmployeeListControl control, string fieldName)
         where T : Control =>
@@ -166,6 +169,24 @@ public sealed class EmployeeListControlTests
             IssueAccessCardRequest request,
             CancellationToken cancellationToken) =>
             Task.FromResult(PersonnelRecordResult.Success(1));
+    }
+
+    private sealed class StubEmployeeFileService : IEmployeeFileService
+    {
+        public Task<FileRecordResult> CreateContractAsync(
+            CreateContractRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(FileRecordResult.Success(1));
+
+        public Task<FileRecordResult> AddEmployeeDocumentAsync(
+            AddEmployeeDocumentRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(FileRecordResult.Success(1));
+
+        public Task<FileRecordResult> SetProfilePhotoAsync(
+            SetProfilePhotoRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(FileRecordResult.Success(1));
     }
 
     private sealed class ImmediateDelay : IDelay

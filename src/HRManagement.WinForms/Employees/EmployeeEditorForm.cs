@@ -1,6 +1,7 @@
 using HRManagement.Application.Abstractions;
 using HRManagement.Application.Employees;
 using HRManagement.Application.Employment;
+using HRManagement.Application.Files;
 using HRManagement.Application.Organization;
 using HRManagement.Application.PersonnelRecords;
 using HRManagement.Domain.Enums;
@@ -15,11 +16,13 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
     private readonly IEmploymentLifecycleService lifecycleService;
     private readonly IAssignmentService assignmentService;
     private readonly IPersonnelRecordService personnelRecordService;
+    private readonly IEmployeeFileService fileService;
     private readonly IPersianDateAdapter dateAdapter;
     private readonly IBackgroundExecutor backgroundExecutor;
     private readonly ILogger<EmploymentLifecycleForm> lifecycleLogger;
     private readonly ILogger<OrganizationAssignmentsForm> organizationLogger;
     private readonly ILogger<PersonnelRecordsForm> personnelRecordsLogger;
+    private readonly ILogger<FileRecordsForm> fileRecordsLogger;
     private readonly CancellationTokenSource lifetime = new();
     private long? employeeId;
     private bool isDirty;
@@ -31,21 +34,25 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
         IEmploymentLifecycleService lifecycleService,
         IAssignmentService assignmentService,
         IPersonnelRecordService personnelRecordService,
+        IEmployeeFileService fileService,
         IPersianDateAdapter dateAdapter,
         IBackgroundExecutor backgroundExecutor,
         ILogger<EmployeeEditorPresenter> logger,
         ILogger<EmploymentLifecycleForm> lifecycleLogger,
         ILogger<OrganizationAssignmentsForm> organizationLogger,
-        ILogger<PersonnelRecordsForm> personnelRecordsLogger)
+        ILogger<PersonnelRecordsForm> personnelRecordsLogger,
+        ILogger<FileRecordsForm> fileRecordsLogger)
     {
         this.lifecycleService = lifecycleService;
         this.assignmentService = assignmentService;
         this.personnelRecordService = personnelRecordService;
+        this.fileService = fileService;
         this.dateAdapter = dateAdapter;
         this.backgroundExecutor = backgroundExecutor;
         this.lifecycleLogger = lifecycleLogger;
         this.organizationLogger = organizationLogger;
         this.personnelRecordsLogger = personnelRecordsLogger;
+        this.fileRecordsLogger = fileRecordsLogger;
         InitializeComponent();
         presenter = new EmployeeEditorPresenter(this, editorService, logger, backgroundExecutor);
         WireEvents();
@@ -82,6 +89,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
             employmentLifecycleButton.Enabled = selectedEmployeeId is not null;
             organizationAssignmentsButton.Enabled = selectedEmployeeId is not null;
             personnelRecordsButton.Enabled = selectedEmployeeId is not null;
+            fileRecordsButton.Enabled = selectedEmployeeId is not null;
             Text = selectedEmployeeId is null ? "افزودن کارمند" : "ویرایش اطلاعات کارمند";
             if (selectedEmployeeId is long id)
             {
@@ -154,6 +162,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
         employmentLifecycleButton.Enabled = true;
         organizationAssignmentsButton.Enabled = true;
         personnelRecordsButton.Enabled = true;
+        fileRecordsButton.Enabled = true;
         EmployeeSaved?.Invoke(this, employeeId);
         MessageBox.Show(
             this,
@@ -227,6 +236,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
         employmentLifecycleButton.Click += (_, _) => ShowEmploymentLifecycle();
         organizationAssignmentsButton.Click += (_, _) => ShowOrganizationAssignments();
         personnelRecordsButton.Click += (_, _) => ShowPersonnelRecords();
+        fileRecordsButton.Click += (_, _) => ShowFileRecords();
         cancelButton.Click += (_, _) => Close();
     }
 
@@ -259,6 +269,7 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
         employmentLifecycleButton.Enabled = false;
         organizationAssignmentsButton.Enabled = false;
         personnelRecordsButton.Enabled = false;
+        fileRecordsButton.Enabled = false;
     }
 
     private void ShowEmploymentLifecycle()
@@ -330,6 +341,30 @@ public partial class EmployeeEditorForm : Form, IEmployeeEditorView
             dateAdapter,
             backgroundExecutor,
             personnelRecordsLogger);
+        form.ShowDialog(this);
+    }
+
+    private void ShowFileRecords()
+    {
+        if (employeeId is not long currentEmployeeId)
+        {
+            MessageBox.Show(
+                this,
+                "ابتدا اطلاعات پایه کارمند را ذخیره کنید.",
+                "مدیریت منابع انسانی",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1,
+                MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+            return;
+        }
+
+        using var form = new FileRecordsForm(
+            currentEmployeeId,
+            fileService,
+            dateAdapter,
+            backgroundExecutor,
+            fileRecordsLogger);
         form.ShowDialog(this);
     }
 }

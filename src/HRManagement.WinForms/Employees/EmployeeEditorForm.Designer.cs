@@ -15,6 +15,7 @@ partial class EmployeeEditorForm
     private Button employmentLifecycleButton = null!;
     private Button organizationAssignmentsButton = null!;
     private Button personnelRecordsButton = null!;
+    private Button fileRecordsButton = null!;
     private Button saveButton = null!;
     private Button cancelButton = null!;
     private Label busyLabel = null!;
@@ -35,6 +36,7 @@ partial class EmployeeEditorForm
         employmentLifecycleButton = new Button();
         organizationAssignmentsButton = new Button();
         personnelRecordsButton = new Button();
+        fileRecordsButton = new Button();
         saveButton = new Button();
         cancelButton = new Button();
         busyLabel = new Label();
@@ -71,6 +73,9 @@ partial class EmployeeEditorForm
         personnelRecordsButton.AutoSize = true;
         personnelRecordsButton.Enabled = false;
         personnelRecordsButton.Text = "سوابق پرسنلی";
+        fileRecordsButton.AutoSize = true;
+        fileRecordsButton.Enabled = false;
+        fileRecordsButton.Text = "قرارداد و فایل‌ها";
         saveButton.Text = "ذخیره";
         saveButton.Width = 100;
         cancelButton.Text = "بستن";
@@ -82,6 +87,7 @@ partial class EmployeeEditorForm
         actionsPanel.Controls.Add(employmentLifecycleButton);
         actionsPanel.Controls.Add(organizationAssignmentsButton);
         actionsPanel.Controls.Add(personnelRecordsButton);
+        actionsPanel.Controls.Add(fileRecordsButton);
         actionsPanel.Controls.Add(saveButton);
         actionsPanel.Controls.Add(cancelButton);
         actionsPanel.Controls.Add(busyLabel);
