@@ -60,11 +60,13 @@ Local installed smoke verification was run against `D:\Programs\C#\HRManagementC
 | Installed first launch smoke | Passed: process stayed running after 5 seconds. |
 | Installed data initialization | Passed: `Data\Database\hr-management.db`, `Data\.initialized`, and application log file were created. |
 | Installed second-instance smoke | Passed: first process remained running, second process exited, and only one installed `HRManagement.WinForms.exe` process remained. |
+| Installed add employee through UI Automation | Passed: created `Smoke User` with personnel number `SMK-001` and national code `1234567891`. |
+| Installed data persistence after restart | Passed: after app restart, searching `SMK-001` showed `Smoke User` and `شماره پرسنلی: SMK-001`. |
+| Installed manual backup through UI Automation | Passed: UI showed `پشتیبان ساخته شد` and created `artifacts\backup-smoke-fixed3\hr-management-20260714075104.zip`. |
+| Backup history and archive contents | Passed: latest `BackupHistories` row has `WasSuccessful=1`; ZIP contains `Database/hr-management.db`, `backup-manifest.json`, `.initialized`, and the active log file. |
 
 Still requiring manual UI or clean-machine verification:
 
 1. Confirm dashboard contents visually on a clean Windows machine or VM.
-2. Add an employee through the installed UI, close, reopen, and confirm data remains.
-3. Run the backup administration page through the installed UI.
-4. Rename or delete the database after `.initialized`, relaunch, and confirm startup integrity handling is shown visually.
-5. Uninstall and confirm the uninstall warning preserves operational data.
+2. Rename or delete the database after `.initialized`, relaunch, and confirm startup integrity handling is shown visually.
+3. Uninstall and confirm the uninstall warning preserves operational data.

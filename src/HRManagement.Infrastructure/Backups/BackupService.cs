@@ -5,6 +5,7 @@ using HRManagement.Application.Abstractions;
 using HRManagement.Application.Backups;
 using HRManagement.Domain.Entities;
 using HRManagement.Infrastructure.Persistence;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace HRManagement.Infrastructure.Backups;
@@ -22,6 +23,7 @@ public sealed class BackupService(
             ? paths.BackupsDirectory
             : Path.GetFullPath(request.DestinationDirectory);
         Directory.CreateDirectory(destination);
+
         var startedAt = clock.UtcNow;
         var backupFile = Path.Combine(destination, $"hr-management-{startedAt:yyyyMMddHHmmss}.zip");
 
@@ -30,43 +32,64 @@ public sealed class BackupService(
         context.BackupHistories.Add(history);
         await context.SaveChangesAsync(cancellationToken);
 
+        string? tempManifest = null;
+        string? tempDatabaseSnapshot = null;
+
         try
         {
             var manifestEntries = new List<BackupManifestEntry>();
-            var tempManifest = Path.Combine(paths.TempDirectory, $"backup-manifest-{Guid.NewGuid():N}.json");
             Directory.CreateDirectory(paths.TempDirectory);
+
+            tempManifest = Path.Combine(paths.TempDirectory, $"backup-manifest-{Guid.NewGuid():N}.json");
+            tempDatabaseSnapshot = Path.Combine(paths.TempDirectory, $"hr-management-{Guid.NewGuid():N}.db");
 
             using (var archive = ZipFile.Open(backupFile, ZipArchiveMode.Create))
             {
                 foreach (var file in Directory.EnumerateFiles(paths.DataDirectory, "*", SearchOption.AllDirectories))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (file.StartsWith(paths.BackupsDirectory, StringComparison.OrdinalIgnoreCase) ||
-                        file.StartsWith(paths.TempDirectory, StringComparison.OrdinalIgnoreCase))
+
+                    if (ShouldSkipDataFile(file))
                     {
                         continue;
                     }
 
                     var relative = Path.GetRelativePath(paths.DataDirectory, file).Replace('\\', '/');
-                    archive.CreateEntryFromFile(file, relative, CompressionLevel.Optimal);
-                    var info = new FileInfo(file);
-                    manifestEntries.Add(new BackupManifestEntry(relative, info.Length, await Sha256Async(file, cancellationToken)));
+                    var sourceFile = file;
+
+                    if (string.Equals(file, paths.DatabaseFile, StringComparison.OrdinalIgnoreCase))
+                    {
+                        CreateDatabaseSnapshot(tempDatabaseSnapshot);
+                        sourceFile = tempDatabaseSnapshot;
+                    }
+
+                    await AddEntryFromFileAsync(archive, sourceFile, relative, cancellationToken);
+                    var info = new FileInfo(sourceFile);
+                    manifestEntries.Add(new BackupManifestEntry(relative, info.Length, await Sha256Async(sourceFile, cancellationToken)));
                 }
 
                 var manifest = new BackupManifest("HRManagement", startedAt.ToString("O"), manifestEntries);
-                await File.WriteAllTextAsync(tempManifest, JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
-                archive.CreateEntryFromFile(tempManifest, "backup-manifest.json", CompressionLevel.Optimal);
+                await File.WriteAllTextAsync(
+                    tempManifest,
+                    JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }),
+                    cancellationToken);
+                await AddEntryFromFileAsync(archive, tempManifest, "backup-manifest.json", cancellationToken);
             }
 
             history.Complete(new FileInfo(backupFile).Length, clock.UtcNow);
             await context.SaveChangesAsync(cancellationToken);
             return BackupResult.Success(backupFile);
         }
-        catch (Exception exception)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
-            history.Fail(exception.Message, clock.UtcNow);
+            history.Fail(ex.Message, clock.UtcNow);
             await context.SaveChangesAsync(cancellationToken);
             return BackupResult.Failure("پشتیبان‌گیری انجام نشد.");
+        }
+        finally
+        {
+            DeleteTemporaryFile(tempManifest);
+            DeleteTemporaryFile(tempDatabaseSnapshot);
         }
     }
 
@@ -82,6 +105,7 @@ public sealed class BackupService(
         var restoreRoot = Path.Combine(paths.TempDirectory, $"restore-{Guid.NewGuid():N}");
         Directory.CreateDirectory(restoreRoot);
         ZipFile.ExtractToDirectory(request.BackupFilePath, restoreRoot);
+
         var manifest = BackupManifestValidator.Read(Path.Combine(restoreRoot, "backup-manifest.json"));
         if (manifest is null || !BackupManifestValidator.ContainsDatabase(manifest))
         {
@@ -92,9 +116,9 @@ public sealed class BackupService(
         {
             cancellationToken.ThrowIfCancellationRequested();
             var source = Path.Combine(restoreRoot, entry.RelativePath.Replace('/', Path.DirectorySeparatorChar));
-            if (!File.Exists(source))
+            if (!File.Exists(source) || await Sha256Async(source, cancellationToken) != entry.Sha256)
             {
-                return BackupResult.Failure("فایل‌های پشتیبان کامل نیستند.");
+                return BackupResult.Failure("فایل‌های پشتیبان معتبر نیستند.");
             }
 
             var target = Path.Combine(paths.DataDirectory, entry.RelativePath.Replace('/', Path.DirectorySeparatorChar));
@@ -106,9 +130,61 @@ public sealed class BackupService(
         return BackupResult.Success(request.BackupFilePath);
     }
 
+    private bool ShouldSkipDataFile(string file)
+    {
+        if (file.StartsWith(paths.BackupsDirectory, StringComparison.OrdinalIgnoreCase)
+            || file.StartsWith(paths.TempDirectory, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return file.StartsWith(paths.DatabaseDirectory, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(file, paths.DatabaseFile, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void CreateDatabaseSnapshot(string snapshotFile)
+    {
+        DeleteTemporaryFile(snapshotFile);
+
+        using var source = new SqliteConnection($"Data Source={paths.DatabaseFile};Mode=ReadOnly");
+        using var destination = new SqliteConnection($"Data Source={snapshotFile}");
+        source.Open();
+        destination.Open();
+        source.BackupDatabase(destination);
+        SqliteConnection.ClearAllPools();
+    }
+
+    private static void DeleteTemporaryFile(string? path)
+    {
+        if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+        {
+            File.Delete(path);
+        }
+    }
+
+    private static async Task AddEntryFromFileAsync(
+        ZipArchive archive,
+        string sourceFile,
+        string entryName,
+        CancellationToken cancellationToken)
+    {
+        var entry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
+        await using var input = new FileStream(
+            sourceFile,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete);
+        await using var output = entry.Open();
+        await input.CopyToAsync(output, cancellationToken);
+    }
+
     private static async Task<string> Sha256Async(string path, CancellationToken cancellationToken)
     {
-        await using var stream = File.OpenRead(path);
+        await using var stream = new FileStream(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete);
         var hash = await SHA256.HashDataAsync(stream, cancellationToken);
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
